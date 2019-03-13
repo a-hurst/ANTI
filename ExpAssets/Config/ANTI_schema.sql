@@ -56,11 +56,13 @@ CREATE TABLE trials (
 	participant_id integer not null references participants(id),
 	block_num integer not null,
 	trial_num integer not null,
+	alerting_trial text not null,
 	cue_type text not null,
-	cue_onset text not null,
 	target_direction text not null,
 	target_loc text not null,
 	flanker_type text not null,
+	onset_delay float not null,
+	soa integer not null,
 	response text not null,
 	rt text not null
 

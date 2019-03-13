@@ -11,21 +11,20 @@ from klibs.KLCommunication import message
 from klibs.KLEventInterface import TrialEventTicket as ET
 from klibs.KLResponseCollectors import KeyPressResponse
 from klibs.KLTime import CountDown
+from klibs.KLAudio import Tone
 
 import random
 
 # Define colours for the experiment
-
 WHITE = [255, 255, 255, 255]
 BLACK = [0, 0, 0, 255]
 
 
-class ANT(klibs.Experiment):
+class ANTI(klibs.Experiment):
 
     def setup(self):
         
         # Stimulus sizes
-        
         fixation_size = deg_to_px(0.5)
         fixation_thickness = deg_to_px(0.05)
         cue_size = deg_to_px(0.5)
@@ -36,7 +35,7 @@ class ANT(klibs.Experiment):
         arrow_head_width = deg_to_px(0.3, even=True)
         
         # Stimuli
-        
+        self.alerting_tone = Tone(50.1, 'sine', frequency=2000, volume=0.5)
         self.fixation = kld.FixationCross(fixation_size, fixation_thickness, fill=BLACK)
         self.cue = kld.Asterisk(cue_size, thickness=cue_thickness, fill=BLACK, spokes=8)
         self.arrow_l = kld.Arrow(arrow_tail_len, arrow_tail_width, arrow_head_len, arrow_head_width, fill=BLACK, rotation=180)
@@ -46,7 +45,6 @@ class ANT(klibs.Experiment):
         self.arrow_r.render()
         
         # Layout
-        
         height_offset = deg_to_px(1.06)
         flanker_offset = arrow_tail_len + arrow_head_len + deg_to_px(0.06)
         self.above_loc = (P.screen_c[0], P.screen_c[1]-height_offset)
@@ -59,8 +57,6 @@ class ANT(klibs.Experiment):
             self.below_flanker_locs.append((x_pos, self.below_loc[1]))
             
         # Initialize feedback messages for practice block
-        
-        
         timeout_msg = message('Too slow! Please try to respond more quickly.', blit_txt=False)
         incorrect_str = ("Incorrect response!\n"
             "Please respond to left arrows with the 'z' key and right arrows with the '/' key.")
@@ -69,14 +65,12 @@ class ANT(klibs.Experiment):
         self.feedback_msgs = {'incorrect': incorrect_msg, 'timeout': timeout_msg}
             
         # Set up Response Collector to get keypress responses
-        
         self.rc.uses(KeyPressResponse)
         self.rc.terminate_after = [1700, TK_MS] # response period times out after 1700ms
         self.rc.keypress_listener.interrupts = True
         self.rc.keypress_listener.key_map = {'z': 'left', '/': 'right'}
         
-        # Add practice block of 24 trials to start of experiment
-        
+        # Add practice block of 24 trials to start of experiment 
         if P.run_practice_blocks:
             self.insert_practice_block(1, trial_counts=24)
         
@@ -137,23 +131,30 @@ class ANT(klibs.Experiment):
                 self.flanker = self.line
         
         # Add timecourse of events to EventManager
-        
-        self.cue_onset = random.randrange(400, 1650, 50) # random interval from 400 to 1600
+        self.onset_delay = random.randrange(400, 1650, 50) # random interval from 400 to 1600
         events = []
-        events.append([self.cue_onset, 'cue_on'])
-        events.append([events[-1][0] + 100, 'cue_off'])
-        events.append([events[-1][0] + 400, 'target_on'])
-        events.append([4000, 'trial_end'])
+        events.append([self.onset_delay, 'tone_on'])
+        events.append([events[-1][0] + 50 , 'tone_off'])
+        events.append([events[-1][0] + 400, 'cue_on'])
+        events.append([events[-1][0] + P.cue_duration, 'cue_off'])
+        events.append([events[-1][0] + self.soa, 'target_on'])
+        events.append([3950 + self.soa, 'trial_end'])
         for e in events:
             self.evm.register_ticket(ET(e[1], e[0]))
 
 
     def trial(self):
+
+        tone_played = False
         
-        # Before target onset, show fixation and draw cues during cue period
+        # Before target onset, show fixation, draw cues during cue period, and play alerting tone
         while self.evm.before('target_on', pump_events=True):
             self.display_refresh()
-            if self.evm.between('cue_on', 'cue_off'):
+            # If alerting trial, and tone onset has arrived but tone not playing, play tone
+            if self.alerting_trial and self.evm.after('tone_on') and not tone_played:
+                self.alerting_tone.play()
+                tone_played = True
+            elif self.evm.between('cue_on', 'cue_off'):
                 self.draw_cues()
             flip()
         
@@ -194,11 +195,13 @@ class ANT(klibs.Experiment):
         return {
             "block_num": P.block_number,
             "trial_num": P.trial_number,
+            "alerting_trial": self.alerting_trial, 
             "cue_type": self.cue_type,
-            "cue_onset": self.cue_onset if self.cue_type != 'none' else 'NA',
             "target_direction": self.target_direction,
             "target_loc": self.target_location,
             "flanker_type": self.flanker_type,
+            "onset_delay": self.onset_delay,
+            "soa": self.soa,
             "response": response,
             "rt": rt
         }
@@ -211,14 +214,11 @@ class ANT(klibs.Experiment):
         
         
     def draw_cues(self):
-        if self.cue_type == 'central':
-            blit(self.cue, 5, P.screen_c)
-        elif self.cue_type == 'double':
-            blit(self.cue, 5, self.above_loc)
-            blit(self.cue, 5, self.below_loc)
-        elif self.cue_type == 'spatial':
+        if self.cue_type == 'valid':
             loc = self.above_loc if self.target_location == 'above' else self.below_loc
+            blit(self.cue, 5, loc)
+        if self.cue_type == 'invalid':
+            loc = self.below_loc if self.target_location == 'above' else self.above_loc
             blit(self.cue, 5, loc)
         elif self.cue_type == 'none':
             pass
-            

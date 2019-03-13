@@ -9,7 +9,7 @@
         {
             "title": "name",
             "database_field": "userhash",
-            "query": "What is your full name, banner number or e-mail address?\nYour answer will be encrypted and cannot be read later.",
+            "query": "What is your full name, student ID, or e-mail address?\nYour answer will be encrypted and cannot be read later.",
             "accepted": null,
             "allow_null": false,
             "format": {
