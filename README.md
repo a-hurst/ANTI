@@ -1,8 +1,8 @@
 # ANT-I
 
-The Attention Network Test - Interaction (ANT-I) is a modification of the [original ANT](https://github.com/a-hurst/ANT) paradigm developed by [Callejas, Lupiáñez, and Tudela (2004)](https://doi.org/10.1016/j.bandc.2004.02.012). The ANT-I extends the original ANT by replacing the cue conditions meant to measure alerting (central, double) with a brief auditory alerting signal and making spatial cues either valid, invalid, or absent, allowing researchers to explore interactions between the alerting network and the orienting network in their effects on alerting and reaction times.
+The Attention Network Test - Interaction (ANT-I) is a modification of the [original ANT](https://github.com/a-hurst/ANT) paradigm developed by [Callejas, Lupiáñez, and Tudela (2004)](https://doi.org/10.1016/j.bandc.2004.02.012). The ANT-I extends the original ANT by replacing the cue conditions meant to measure alerting (central, double) with a brief auditory alerting signal and making spatial cues either valid, invalid, or absent. This extension allows researchers to explore interactions between the alerting network and the orienting network in their effects on accuracy and reaction time.
 
-This experiment program is a direct replication of the versions of the ANT-I presented in [Callejas, Lupiáñez, Funes, and Tudela (2005)](https://doi.org/10.1007/s00221-005-2365-z), rewritten in Python using the KLibs framework.
+This experiment program is a direct replication of the version of the ANT-I presented in E1 of [Callejas, Lupiáñez, Funes, and Tudela (2005)](https://doi.org/10.1007/s00221-005-2365-z), rewritten in Python using the KLibs framework.
 
 ![ANTI_animation](klibs_anti.gif)
 
